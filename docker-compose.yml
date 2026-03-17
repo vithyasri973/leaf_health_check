@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leaf-health-check
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./database:/app/database
+      - ./model:/app/model
+      - ./assets:/app/assets
+    environment:
+      - DB_PATH=/app/database/plants.db
+      - MODEL_PATH=/app/model/
+      - STREAMLIT_SERVER_MAXUPLOADSIZE=25
+      - STREAMLIT_LOGGER_LEVEL=info
+      - TF_CPP_MIN_LOG_LEVEL=2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - leaf-network
+
+networks:
+  leaf-network:
+    driver: bridge
